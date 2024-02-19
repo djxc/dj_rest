@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     this->setWindowTitle("hava a rest");
-    setWindowFlags(Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::WindowStaysOnTopHint|Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint);
     setWindowState(Qt::WindowMinimized);
     this->init();
 }
@@ -63,7 +63,12 @@ void MainWindow::timerFunc()
         ImageDownloader* imageDownloader = new ImageDownloader();
         QByteArray imageData = imageDownloader->getRandomImageData();
         this->imageData = imageData;
-        this->setBackgroundImage();
+        try {
+            this->setBackgroundImage();
+        } catch(_exception) {
+            qDebug("load image error");
+            this->setBackgroundColor();
+        }
     } else {
         this->setBackgroundColor();
         this->imageData = NULL;
@@ -103,7 +108,11 @@ void MainWindow::maxWindow() {
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
     if (this->isInit) {
-        setBackgroundImage();
+        if (imageData.size() > 0) {
+            setBackgroundImage();
+        } else {
+            setBackgroundColor();
+        }
     } else {
         this->isInit = true;
     }
