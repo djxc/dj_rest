@@ -27,7 +27,7 @@ private slots:
     void resting();
 
 private:
-    uint restTime = 60 * 5;  // 休息时间s
+    uint restTime = 60; //60 * 5;  // 休息时间s
     int workTime = 1000 * 60 * 60;  // 工作时间毫秒
     bool isInit = false;
     bool isResting = false;
@@ -40,6 +40,7 @@ private:
     QColor createRandomColor();
     void setBackgroundColor();
     void setBackgroundImage();
+    void changeLabel();
 
 };
 #endif // MAINWINDOW_H
