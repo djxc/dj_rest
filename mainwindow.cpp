@@ -18,8 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::init(){
     _Timer = new QTimer(this);
-//    _Timer->setInterval(workTime);	//一个小时
-    _Timer->setInterval(1000 * 60 * 2);	//10秒
+    _Timer->setInterval(workTime);	//一个小时
+//    _Timer->setInterval(1000 * 60 * 2);	//10秒
     connect(_Timer, SIGNAL(timeout()), SLOT(timerFunc()));
     _Timer->start();//启动计时器    
 //    _Timer->stop();//停止计时器

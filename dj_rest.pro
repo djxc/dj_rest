@@ -22,7 +22,8 @@ SOURCES += \
 
 HEADERS += \
     imagedownloader.h \
-    mainwindow.h
+    mainwindow.h \
+    ui_mainwindow.h
 
 FORMS += \
     mainwindow.ui
