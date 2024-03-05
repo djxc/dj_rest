@@ -33,6 +33,7 @@ private:
     bool isResting = false;
     uint restTimestamp;
     QByteArray imageData;
+    QColor currentBackgroundColor;
     Ui::MainWindow *ui;
     QTimer* _Timer;
 

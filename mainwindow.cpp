@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::init(){
     _Timer = new QTimer(this);
     _Timer->setInterval(workTime);	//一个小时
-//    _Timer->setInterval(1000 * 60 * 2);	//10秒
+//    _Timer->setInterval(1000 * 30);	//30秒
     connect(_Timer, SIGNAL(timeout()), SLOT(timerFunc()));
     _Timer->start();//启动计时器    
 //    _Timer->stop();//停止计时器
@@ -68,13 +68,14 @@ void MainWindow::timerFunc()
     // 随机选择是背景图片还是单一颜色,如果获取web图片失败则采用颜色背景
     int r = rand()%100;
     qDebug("run time event! background type: %d; now: %d", r, this->restTimestamp);
+    this->currentBackgroundColor = this->createRandomColor();
     if (r > 5) {
         ImageDownloader* imageDownloader = new ImageDownloader();
         this->imageData = imageDownloader->getRandomImageData();
         try {
             this->setBackgroundImage();
         } catch(_exception) {
-            qDebug("load image error");
+            qDebug("load image error");    
             this->setBackgroundColor();
         }
     } else {
@@ -91,8 +92,7 @@ void MainWindow::timerFunc()
 void MainWindow::setBackgroundColor() {
     //通过QPalette设置背景颜色
     QPalette palette(this->palette());
-    QColor qcolor = this->createRandomColor();
-    palette.setColor(QPalette::Background, qcolor);
+    palette.setColor(QPalette::Background, this->currentBackgroundColor);
     this->setPalette(palette);
 }
 
