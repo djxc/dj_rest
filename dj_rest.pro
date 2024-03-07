@@ -39,8 +39,13 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     .gitignore \
     README.md \
-    favicon.ico
+    dj_rest.ini \
+    favicon.ico \
+    icon.png
 
 RC_ICONS = favicon.ico
 
 QT += network
+
+RESOURCES += \
+    qt.qrc

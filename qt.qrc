@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icon.png</file>
+        <file>dj_rest.ini</file>
+    </qresource>
+</RCC>

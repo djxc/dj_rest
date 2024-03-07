@@ -19,7 +19,7 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>141</width>
+      <width>211</width>
       <height>61</height>
      </rect>
     </property>
@@ -31,7 +31,7 @@
      </font>
     </property>
     <property name="text">
-     <string>休息一下</string>
+     <string>工作中……</string>
     </property>
    </widget>
   </widget>

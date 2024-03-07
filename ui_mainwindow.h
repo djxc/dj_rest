@@ -31,14 +31,14 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(800, 600);
+        MainWindow->resize(600, 400);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         label = new QLabel(centralwidget);
         label->setObjectName(QString::fromUtf8("label"));
-        label->setGeometry(QRect(290, 210, 141, 71));
+        label->setGeometry(QRect(90, 20, 250, 71));
         QFont font;
-        font.setPointSize(25);
+        font.setPointSize(20);
         font.setBold(true);
         font.setWeight(75);
         label->setFont(font);
@@ -59,7 +59,7 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
-        label->setText(QCoreApplication::translate("MainWindow", "\344\274\221\346\201\257\344\270\200\344\270\213", nullptr));
+        label->setText(QCoreApplication::translate("MainWindow", "start working......", nullptr));
     } // retranslateUi
 
 };

@@ -1,4 +1,4 @@
-# 休息休息
+# 休息一下
 
 - 1. 通过qt，采用定时任务创建休息提示软件，默认一个小时提示一次
 - 2. 随机从bing壁纸获取图片作为背景图
@@ -11,4 +11,8 @@
 
 
 ## 打包
-- 1、软件直接生成exe在其他电脑上不可直接运行，因此需要用qt自带的windeployqt.exe工具搜集软件的依赖库，具体执行`..\windeployqt.exe dj_rest.exe`.qt中可能会有msvc以及mingw编译程序，采用哪个编译软件就用哪个下的windeployqt.exe
+- 1、软件直接生成exe在其他电脑上不可直接运行，因此需要用qt自带的windeployqt.exe工具搜集软件的依赖库，具体执行`..\windeployqt.exe dj_rest.exe`.qt中可能会有msvc以及mingw编译程序，采用哪个编译软件就用哪个下的windeployqt.exe,如D:\Qt\Qt5.14.2\5.14.2\msvc2017_64\bin\windeployqt.exe.
+
+
+## 细节
+- 1、托盘图标一直不显示是因为icon路径不对，需要先创建qt资源文件qrc，然后添加前缀，最后添加文件即可。使用方法通过前缀加上文件名称即可。

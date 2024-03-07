@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <QDebug>
 #include <ctime>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -9,14 +10,20 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    settings = new QSettings(":/dj_rest.ini", QSettings::IniFormat);
+    int time1 = settings->value("config/restTime").toInt();
+    if (time1 > 0 && time1 < 20 * 60) {
+        this->restTime = time1;
+    }
+    createTrayIcon();
     ui->setupUi(this);
+    this->currentBackgroundColor = this->createRandomColor();
     this->setWindowTitle("hava a rest");
-    setWindowFlags(Qt::WindowStaysOnTopHint|Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint);
-    setWindowState(Qt::WindowMinimized);
-    this->init();
+    setWindowFlags(Qt::WindowStaysOnTopHint|Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint|Qt::WindowCloseButtonHint);
 }
 
-void MainWindow::init(){
+void MainWindow::init(uint screenId){
+    this->screen = QGuiApplication::screens().at(screenId);
     _Timer = new QTimer(this);
     _Timer->setInterval(workTime);	//一个小时
 //    _Timer->setInterval(1000 * 30);	//30秒
@@ -41,16 +48,20 @@ void MainWindow::resting() {
         uint now = timeDate.toTime_t();   	    // 将当前时间转为时间戳
         if ((now - this->restTimestamp) > restTime) {
             this->isResting = false;
+            this->changeLabel("工作中.....");
             setWindowState(Qt::WindowMinimized);
-        }
-        if (this->isResting) {
+            this->hide();
+        } else {
             if (imageData.size() > 0) {
                 this->setBackgroundImage();
             } else {
                 this->setBackgroundColor();
             }
-            this->changeLabel();
+            QString newTimeStr = this->refreshTime();
+            this->changeLabel(newTimeStr);
             this->maxWindow();
+            QRect rect = this->screen->availableGeometry();
+            this->setGeometry(rect);
         }
     }
 }
@@ -65,22 +76,15 @@ void MainWindow::timerFunc()
 {       
     QDateTime timeDate = QDateTime::currentDateTime();  // 获取当前时间
     this->restTimestamp = timeDate.toTime_t();   	    // 将当前时间转为时间戳
-    // 随机选择是背景图片还是单一颜色,如果获取web图片失败则采用颜色背景
-    int r = rand()%100;
-    qDebug("run time event! background type: %d; now: %d", r, this->restTimestamp);
-    this->currentBackgroundColor = this->createRandomColor();
-    if (r > 5) {
+    try {
         ImageDownloader* imageDownloader = new ImageDownloader();
         this->imageData = imageDownloader->getRandomImageData();
-        try {
-            this->setBackgroundImage();
-        } catch(_exception) {
-            qDebug("load image error");    
-            this->setBackgroundColor();
-        }
-    } else {
-        this->setBackgroundColor();
+        this->setBackgroundImage();
+    } catch(_exception) {
+        qDebug("load image error");
+        this->currentBackgroundColor = this->createRandomColor();
         this->imageData = NULL;
+        this->setBackgroundColor();
     }
     this->isResting = true;
 }
@@ -118,15 +122,16 @@ void MainWindow::setBackgroundImage() {
  */
 void MainWindow::maxWindow() {
     this->setFocus();
+    this->show();
     setWindowState(Qt::WindowMaximized);//初始状态最大化
 }
 
 /**
- * @brief MainWindow::changeLabel
- * 修改label内容，休息时间内每秒更新一次时间
+ * @brief MainWindow::refreshTime
+ * 更新休息倒计时
+ * @return QString
  */
-void MainWindow::changeLabel() {
-    QLabel *label = this->ui->label;
+QString MainWindow::refreshTime() {
     QDateTime timeDate = QDateTime::currentDateTime();  // 获取当前时间
     uint nowTime = timeDate.toTime_t();   	    // 将当前时间转为时间戳
     uint leftTime = restTime - (nowTime - restTimestamp);
@@ -134,11 +139,32 @@ void MainWindow::changeLabel() {
     uint seconds = leftTime % 60;
     uint minutes = leftTime / 60;
     QString labelTxt = QString("该休息了, 站起来活动一下吧.休息剩余时间:%1m%2s").arg(minutes).arg(seconds);
+    return labelTxt;
+}
+
+/**
+ * @brief MainWindow::changeLabel
+ * 修改label内容，休息时间内每秒更新一次时间
+ */
+void MainWindow::changeLabel(QString labelTxt) {
+    QLabel *label = this->ui->label;   
     label->setText(labelTxt);
     label->setStyleSheet("QLabel{background-color:rgb(255,255,255);}");
     label->setMargin(10);
     label->move(20, 10);
     label->adjustSize();
+}
+
+
+
+void MainWindow::changeEvent(QEvent *event) {
+    if (isMinimized()) {
+        if (this->tip_hide == false) {
+            this->hide();
+            systemIcon->showMessage("have a rest", "后台运行", QSystemTrayIcon::MessageIcon::Information, 300);
+            this->tip_hide = true;
+        }
+    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
@@ -153,6 +179,57 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
     }
 }
 
+/**
+ * @brief MainWindow::closeEvent
+ * 拦截close事件
+ * @param event
+ */
+void MainWindow::closeEvent(QCloseEvent *event) {
+    setWindowState(Qt::WindowMinimized);
+    event->ignore();
+}
+
+/**
+ * @brief MainWindow::createTrayIcon
+ * 创建托盘
+ */
+void MainWindow::createTrayIcon() {
+    systemIcon = new QSystemTrayIcon(this);
+
+    systemIcon->setToolTip("这是系统系统图标");     // 设置提示语
+    systemIcon->setIcon(QIcon(":/icon.png"));   // 设置图标
+
+    // 增加托盘菜单
+    QMenu *menu = new QMenu();
+    QAction *closeAction = new QAction("关闭");
+    menu->addAction(closeAction);
+    systemIcon->setContextMenu(menu);
+    connect(closeAction, SIGNAL(triggered(bool)), this, SLOT(close()));
+    systemIcon->show();
+    // 关联点击拖盘事件
+    connect(systemIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this, SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)));
+    // 要在show之后调用
+//    systemIcon->showMessage("have a rest", "程序正在后台运行",QSystemTrayIcon::MessageIcon::Information,500);
+}
+
+/**
+ * @brief MainWindow::close
+ * 关闭程序
+ */
+void MainWindow::close() {
+    QApplication::quit();
+}
+
+/**
+ * @brief MainWindow::on_activatedSysTrayIcon
+ * 点击托盘
+ * @param reason
+ */
+void MainWindow::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reason) {
+    if (reason == QSystemTrayIcon::Trigger) {
+        this->show();
+    }
+}
 
 /**
  * @brief MainWindow::createRandomColor

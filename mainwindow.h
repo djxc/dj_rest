@@ -4,6 +4,12 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QBuffer>
+#include<QScreen>
+#include <QDesktopWidget>
+#include <QSystemTrayIcon>
+#include <QCloseEvent>
+#include <QEvent>
+#include <QSettings>
 
 #include "imagedownloader.h"
 
@@ -18,16 +24,21 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     void resizeEvent(QResizeEvent *re);
-    void init();
+    void changeEvent(QEvent *event);
+    void closeEvent(QCloseEvent *event);
+    void init(uint screenId);
 
     ~MainWindow();
+
 
 private slots:
     void timerFunc();
     void resting();
+    void close();
+    void on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reason);
 
 private:
-    uint restTime = 60 * 5;  // 休息时间s
+    uint restTime = 10;//60 * 5;  // 休息时间s
     int workTime = 1000 * 60 * 60;  // 工作时间毫秒
     bool isInit = false;
     bool isResting = false;
@@ -35,13 +46,19 @@ private:
     QByteArray imageData;
     QColor currentBackgroundColor;
     Ui::MainWindow *ui;
-    QTimer* _Timer;
+    QTimer* _Timer;        
+    QScreen* screen;
+    QSystemTrayIcon* systemIcon;
+    bool tip_hide = false;
+    QSettings *settings;
 
     void maxWindow();
     QColor createRandomColor();
     void setBackgroundColor();
     void setBackgroundImage();
-    void changeLabel();
+    void changeLabel(QString labelTxt);
+    QString refreshTime();
+    void createTrayIcon();
 
 };
 #endif // MAINWINDOW_H
