@@ -35,6 +35,7 @@ private slots:
     void timerFunc();
     void resting();
     void close();
+    void closeOneTime();
     void on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reason);
 
 private:
@@ -42,6 +43,7 @@ private:
     int workTime = 1000 * 60 * 60;  // 工作时间毫秒
     bool isInit = false;
     bool isResting = false;
+    int screenId = 0;
     uint restTimestamp;
     QByteArray imageData;
     QColor currentBackgroundColor;
@@ -59,6 +61,7 @@ private:
     void changeLabel(QString labelTxt);
     QString refreshTime();
     void createTrayIcon();
+    void stopResting();
 
 };
 #endif // MAINWINDOW_H

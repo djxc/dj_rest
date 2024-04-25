@@ -23,13 +23,13 @@ class ImageDownloader : public QObject
 public:
     explicit ImageDownloader();
     virtual ~ImageDownloader();
-    QByteArray getRandomImageData();
+    QByteArray getRandomImageData(int screenId);
 
 private:
     QNetworkAccessManager m_WebCtrl;
     QByteArray m_DownloadedData;
 
-    QString getRandomImageUrl();
+    QString getRandomImageUrl(int screenId);
 };
 
 #endif // IMAGEDOWNLOADER_H

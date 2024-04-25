@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <QDebug>
 #include <ctime>
+#include <iostream>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -10,8 +11,10 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    settings = new QSettings(":/dj_rest.ini", QSettings::IniFormat);
+    QString path = QCoreApplication::applicationDirPath();
+    settings = new QSettings(QString("%1/dj_rest.ini").arg(path), QSettings::IniFormat);
     int time1 = settings->value("config/restTime").toInt();
+    std::cout<< "rest time: " << time1 <<std::endl;
     if (time1 > 0 && time1 < 20 * 60) {
         this->restTime = time1;
     }
@@ -23,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void MainWindow::init(uint screenId){
+    this->screenId = screenId;
     this->screen = QGuiApplication::screens().at(screenId);
     _Timer = new QTimer(this);
     _Timer->setInterval(workTime);	//一个小时
@@ -47,10 +51,7 @@ void MainWindow::resting() {
         QDateTime timeDate = QDateTime::currentDateTime();  // 获取当前时间
         uint now = timeDate.toTime_t();   	    // 将当前时间转为时间戳
         if ((now - this->restTimestamp) > restTime) {
-            this->isResting = false;
-            this->changeLabel("工作中.....");
-            setWindowState(Qt::WindowMinimized);
-            this->hide();
+            this->stopResting();
         } else {
             if (imageData.size() > 0) {
                 this->setBackgroundImage();
@@ -67,6 +68,17 @@ void MainWindow::resting() {
 }
 
 /**
+ * @brief MainWindow::stopResting
+ * 结束休息
+ */
+void MainWindow::stopResting() {
+    this->isResting = false;
+    this->changeLabel("工作中.....");
+    setWindowState(Qt::WindowMinimized);
+    this->hide();
+}
+
+/**
  * @brief MainWindow::timerFunc
  * 休息时触发函数
  * 1、记录当前休息的时间
@@ -78,7 +90,7 @@ void MainWindow::timerFunc()
     this->restTimestamp = timeDate.toTime_t();   	    // 将当前时间转为时间戳
     try {
         ImageDownloader* imageDownloader = new ImageDownloader();
-        this->imageData = imageDownloader->getRandomImageData();
+        this->imageData = imageDownloader->getRandomImageData(this->screenId);
         this->setBackgroundImage();
     } catch(_exception) {
         qDebug("load image error");
@@ -196,20 +208,32 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 void MainWindow::createTrayIcon() {
     systemIcon = new QSystemTrayIcon(this);
 
-    systemIcon->setToolTip("这是系统系统图标");     // 设置提示语
+    systemIcon->setToolTip("have a rest");     // 设置提示语
     systemIcon->setIcon(QIcon(":/icon.png"));   // 设置图标
 
     // 增加托盘菜单
     QMenu *menu = new QMenu();
     QAction *closeAction = new QAction("关闭");
+    QAction *closeOneTimeAction = new QAction("跳过当前休息");
     menu->addAction(closeAction);
+    menu->addAction(closeOneTimeAction);
     systemIcon->setContextMenu(menu);
     connect(closeAction, SIGNAL(triggered(bool)), this, SLOT(close()));
+    connect(closeOneTimeAction, SIGNAL(triggered(bool)), this, SLOT(closeOneTime()));
     systemIcon->show();
     // 关联点击拖盘事件
     connect(systemIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this, SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)));
     // 要在show之后调用
 //    systemIcon->showMessage("have a rest", "程序正在后台运行",QSystemTrayIcon::MessageIcon::Information,500);
+}
+
+/**
+ * @brief MainWindow::closeOneTime
+ * 关闭本次休息
+ * 当前仅对对应的窗口有效，如果又两个显示器则需要进行两次结束
+ */
+void MainWindow::closeOneTime() {
+    this->stopResting();
 }
 
 /**

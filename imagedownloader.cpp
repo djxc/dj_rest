@@ -13,9 +13,9 @@ ImageDownloader::~ImageDownloader() { }
  * 2、通过http请求获取二进制数组，并返回
  * @return
  */
-QByteArray ImageDownloader::getRandomImageData()
+QByteArray ImageDownloader::getRandomImageData(int screenId)
 {
-    QString imageUrl = getRandomImageUrl();
+    QString imageUrl = getRandomImageUrl(screenId);
     //生成对应的网络请求
     QNetworkRequest request;
     request.setUrl(QUrl(imageUrl));
@@ -44,10 +44,10 @@ QByteArray ImageDownloader::getRandomImageData()
  * 随机获取一张图片地址
  * @return
  */
-QString ImageDownloader::getRandomImageUrl()
+QString ImageDownloader::getRandomImageUrl(int screenId)
 {
-    srand(time(NULL));
-    int offset = rand() % 7;
+    srand(time(0));
+    int offset = rand() % 7 + screenId;
     QString url = QString("https://cn.bing.com/HPImageArchive.aspx?format=js&idx=%1&n=8&mkt=zh-CN").arg(offset);
     //生成对应的网络请求
     QNetworkRequest request;
